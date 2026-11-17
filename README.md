@@ -55,6 +55,8 @@ php artisan vendor:publish --tag=log-inspector-config
 php artisan vendor:publish --tag=log-inspector-assets
 ```
 
+> **Note:** Views are loaded directly from the package and should **not** be published unless you need to customize the Blade templates. Keeping views unpublished ensures UI updates are received automatically on `composer update`. If you previously published views and want to revert to package defaults, delete `resources/views/vendor/log-inspector/`.
+
 ---
 
 ## Authorization & Gates Configuration
