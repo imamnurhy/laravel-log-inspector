@@ -1,7 +1,6 @@
 # Explorin Laravel Log Inspector
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/explorin/laravel-log-inspector.svg?style=flat-square)](https://packagist.org/packages/explorin/laravel-log-inspector)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/explorin/laravel-log-inspector/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/explorin/laravel-log-inspector/actions)
 [![Total Downloads](https://img.shields.io/packagist/dt/explorin/laravel-log-inspector.svg?style=flat-square)](https://packagist.org/packages/explorin/laravel-log-inspector)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 
