@@ -68,23 +68,31 @@
                     <span class="badge bg-secondary ms-2">Inactive</span>
                 @endif
             </div>
-            <div class="d-flex gap-2">
-                <a href="{{ route('log-inspector.download', ['file' => $selectedFile]) }}" class="btn btn-sm btn-outline-primary">
-                    ⬇️ Download Masked
-                </a>
-                <a href="{{ route('log-inspector.download', ['file' => $selectedFile, 'raw' => 1]) }}" class="btn btn-sm btn-outline-danger">
-                    ⬇️ Download Raw
-                </a>
-                @if($selectedMeta && ! $selectedMeta['is_active'])
-                    <form method="POST" action="{{ route('log-inspector.destroy') }}" onsubmit="return confirm('Are you sure you want to delete this log file? This action is permanent.');" style="display: inline;">
-                        @csrf
-                        <input type="hidden" name="file" value="{{ $selectedFile }}">
-                        <button type="submit" class="btn btn-sm btn-danger">
-                            🗑️ Delete
-                        </button>
-                    </form>
-                @endif
-            </div>
+            
+            {{-- In link mode, destructive operations & raw downloads are strictly omitted --}}
+            @if(config('log-inspector.access.mode') === 'gate')
+                <div class="d-flex gap-2">
+                    <a href="{{ route('log-inspector.download', ['file' => $selectedFile]) }}" class="btn btn-sm btn-outline-primary">
+                        ⬇️ Download Masked
+                    </a>
+                    <a href="{{ route('log-inspector.download', ['file' => $selectedFile, 'raw' => 1]) }}" class="btn btn-sm btn-outline-danger">
+                        ⬇️ Download Raw
+                    </a>
+                    @if(config('log-inspector.web_delete_enabled', false) && $selectedMeta && ! $selectedMeta['is_active'])
+                        <form method="POST" action="{{ route('log-inspector.destroy') }}" onsubmit="return confirm('Are you sure you want to delete this log file? This action is permanent.');" style="display: inline;">
+                            @csrf
+                            <input type="hidden" name="file" value="{{ $selectedFile }}">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                🗑️ Delete
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            @else
+                <div class="text-muted small">
+                    <span class="badge bg-light text-muted border">🔒 Masked Read-Only View</span>
+                </div>
+            @endif
         </div>
         @endif
 

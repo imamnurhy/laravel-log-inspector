@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Explorin\LogInspector;
 
 use Explorin\LogInspector\Console\ArchiveCommand;
+use Explorin\LogInspector\Console\GenerateLinkCommand;
+use Explorin\LogInspector\Console\ListLinksCommand;
 use Explorin\LogInspector\Console\ReindexCommand;
 use Explorin\LogInspector\Console\RetentionCommand;
+use Explorin\LogInspector\Console\RevokeLinkCommand;
+use Explorin\LogInspector\Contracts\AccessStoreInterface;
 use Explorin\LogInspector\Contracts\LogIndexInterface;
 use Explorin\LogInspector\Contracts\LogParserInterface;
 use Explorin\LogInspector\Contracts\MaskerInterface;
@@ -14,6 +18,7 @@ use Explorin\LogInspector\Contracts\PathGuardInterface;
 use Explorin\LogInspector\Indexing\FileIndexStore;
 use Explorin\LogInspector\Indexing\LogIndexer;
 use Explorin\LogInspector\Parsers\LaravelLogParser;
+use Explorin\LogInspector\Security\CacheAccessStore;
 use Explorin\LogInspector\Security\Masker;
 use Explorin\LogInspector\Security\PathGuard;
 use Explorin\LogInspector\Services\AuditLogger;
@@ -89,6 +94,21 @@ final class LogInspectorServiceProvider extends ServiceProvider
             );
         });
 
+        // Bind AccessStore (Addendum v2.1)
+        $this->app->singleton(AccessStoreInterface::class, function ($app) {
+            $cacheStoreName = $app['config']->get('log-inspector.access.store.store');
+            $cacheRepo = $app->make(CacheFactory::class)->store($cacheStoreName);
+
+            $maxAttempts = (int) $app['config']->get('log-inspector.access.lockout.attempts', 10);
+            $lockoutMinutes = (int) $app['config']->get('log-inspector.access.lockout.minutes', 15);
+
+            return new CacheAccessStore(
+                cache: $cacheRepo,
+                maxAttempts: $maxAttempts,
+                lockoutMinutes: $lockoutMinutes
+            );
+        });
+
         // Bind AuditLogger
         $this->app->singleton(AuditLogger::class, function ($app) {
             $config = $app['config']->get('log-inspector.audit', []);
@@ -156,6 +176,9 @@ final class LogInspectorServiceProvider extends ServiceProvider
                 RetentionCommand::class,
                 ArchiveCommand::class,
                 ReindexCommand::class,
+                GenerateLinkCommand::class,
+                ListLinksCommand::class,
+                RevokeLinkCommand::class,
             ]);
         }
 

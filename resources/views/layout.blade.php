@@ -14,7 +14,18 @@
             <a class="navbar-brand fw-bold text-white text-decoration-none" href="{{ route('log-inspector.index') }}">
                 🪵 Explorin Log Inspector
             </a>
-            <span class="badge bg-secondary text-uppercase">{{ app()->environment() }}</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-secondary text-uppercase">{{ app()->environment() }}</span>
+                @if(config('log-inspector.access.mode') === 'link' || request()->attributes->get('log_inspector_mode') === 'link')
+                    <span class="badge bg-info text-dark">Temporary Link Session (Read-Only)</span>
+                    <form method="POST" action="{{ route('log-inspector.logout') }}" style="display: inline;">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.75rem;">
+                            🚪 Akhiri Sesi
+                        </button>
+                    </form>
+                @endif
+            </div>
         </div>
     </nav>
 
