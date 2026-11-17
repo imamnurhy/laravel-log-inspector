@@ -178,7 +178,7 @@ body.log-inspector-body {
     font-size: 0.825rem;
     line-height: 1.45;
     color: #1f2937;
-    white-space: pre-wrap;
+    white-space: normal;
     word-break: break-word;
     text-align: left;
 }

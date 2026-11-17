@@ -224,10 +224,7 @@
                                         <span class="li-log-channel">{{ $entry->channel }}</span>
                                     </td>
                                     <td>
-                                        <div class="li-log-msg">
-                                            {{-- Strict escaping safe against XSS --}}
-                                            {{ \Illuminate\Support\Str::limit($entry->message, 240) }}
-                                        </div>
+                                        <div class="li-log-msg">{{ \Illuminate\Support\Str::limit(trim($entry->message), 240) }}</div>
                                         @if ($entry->hasException())
                                             <div class="li-exception-highlight">
                                                 💥 {{ $entry->exceptionClass }}: {{ $entry->exceptionLocation() }}
