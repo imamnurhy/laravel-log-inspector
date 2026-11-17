@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authorize Session - Log Inspector</title>
-    <link rel="stylesheet" href="{{ asset('vendor/log-inspector/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/log-inspector/css/log-inspector.css') }}">
+    <link rel="stylesheet" href="{{ route('log-inspector.asset', ['path' => 'css/bootstrap.min.css']) }}">
+    <link rel="stylesheet" href="{{ route('log-inspector.asset', ['path' => 'css/log-inspector.css']) }}">
 </head>
 <body class="log-inspector-body d-flex align-items-center justify-content-center" style="min-height: 100vh;">
     <div class="card shadow-sm" style="max-width: 420px; width: 100%;">

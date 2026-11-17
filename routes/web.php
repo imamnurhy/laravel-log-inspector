@@ -1,5 +1,6 @@
 <?php
 
+use Explorin\LogInspector\Http\Controllers\AssetController;
 use Explorin\LogInspector\Http\Controllers\DashboardController;
 use Explorin\LogInspector\Http\Controllers\FileActionController;
 use Explorin\LogInspector\Http\Controllers\LinkExchangeController;
@@ -12,6 +13,15 @@ if (config('log-inspector.enabled', false)) {
     $mode = (string) config('log-inspector.access.mode', 'link');
     $path = (string) config('log-inspector.path', 'log-inspector');
     $domain = config('log-inspector.domain');
+
+    // 0. Internal Asset Route (Zero-Publish: Directly served from package)
+    Route::prefix($path)
+        ->domain($domain)
+        ->group(function () {
+            Route::get('/assets/{path}', [AssetController::class, 'serve'])
+                ->where('path', '.*')
+                ->name('log-inspector.asset');
+        });
 
     // 1. Link Exchange Routes (Available in 'link' and 'both' modes)
     if (in_array($mode, ['link', 'both'], true)) {

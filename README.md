@@ -48,14 +48,18 @@ Install the package via Composer:
 composer require explorin/laravel-log-inspector
 ```
 
-Publish configuration and dashboard assets:
+Publish package configuration (Optional, if you wish to customize defaults):
 
 ```bash
 php artisan vendor:publish --tag=log-inspector-config
-php artisan vendor:publish --tag=log-inspector-assets
 ```
 
-> **Note:** Views are loaded directly from the package and should **not** be published unless you need to customize the Blade templates. Keeping views unpublished ensures UI updates are received automatically on `composer update`. If you previously published views and want to revert to package defaults, delete `resources/views/vendor/log-inspector/`.
+### 🚀 100% Zero-Publish / Plug & Play
+Just like Laravel Horizon & Telescope, **Explorin Log Inspector serves all CSS and JS assets directly from the package** through an internal optimized asset route with HTTP caching (`Cache-Control`, `ETags`, and 304 Not Modified). 
+
+- **No `vendor:publish --tag=log-inspector-assets` required.**
+- **No `resources/views/vendor/log-inspector/` publishing needed.**
+- Your application's `public/` directory stays completely clean, avoiding unwanted git diffs, and your dashboard styling will always stay up-to-date across composer updates!
 
 ---
 

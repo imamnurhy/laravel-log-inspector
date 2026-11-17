@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Log Inspector') - Explorin</title>
-    <!-- Local Bundled Assets (No External CDN, CSP Safe) -->
-    <link rel="stylesheet" href="{{ asset('vendor/log-inspector/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/log-inspector/css/log-inspector.css') }}">
+    <!-- Internal Zero-Publish Assets (Served directly from package with caching) -->
+    <link rel="stylesheet" href="{{ route('log-inspector.asset', ['path' => 'css/bootstrap.min.css']) }}">
+    <link rel="stylesheet" href="{{ route('log-inspector.asset', ['path' => 'css/log-inspector.css']) }}">
 </head>
 <body class="log-inspector-body">
     <nav class="navbar navbar-expand-lg navbar-dark li-navbar">
@@ -33,8 +33,8 @@
         @yield('content')
     </main>
 
-    <!-- Bootstrap Bundle JS (includes Popper) & Helper -->
-    <script src="{{ asset('vendor/log-inspector/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('vendor/log-inspector/js/log-inspector.js') }}"></script>
+    <!-- Bootstrap Bundle JS (includes Popper) & Helper (Zero-Publish) -->
+    <script src="{{ route('log-inspector.asset', ['path' => 'js/bootstrap.bundle.min.js']) }}"></script>
+    <script src="{{ route('log-inspector.asset', ['path' => 'js/log-inspector.js']) }}"></script>
 </body>
 </html>
