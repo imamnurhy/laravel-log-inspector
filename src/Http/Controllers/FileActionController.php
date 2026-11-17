@@ -22,7 +22,8 @@ final class FileActionController
      */
     public function download(Request $request): StreamedResponse
     {
-        $file = (string) $request->query('file');
+        $fileParam = (string) $request->query('file');
+        $file = \Explorin\LogInspector\Services\LogInspector::decodeFile($fileParam);
         $raw = (bool) $request->query('raw', false);
 
         if ($raw) {
@@ -54,7 +55,8 @@ final class FileActionController
             abort(403, 'Unauthorized to delete log files.');
         }
 
-        $file = (string) $request->input('file');
+        $fileParam = (string) $request->input('file');
+        $file = \Explorin\LogInspector\Services\LogInspector::decodeFile($fileParam);
         $userId = $request->user()?->getAuthIdentifier();
         $ip = $request->ip();
 

@@ -27,7 +27,8 @@ final class DashboardController
         $this->authorizeIfGateMode('view');
 
         $files = $this->logInspector->files();
-        $selectedFile = $request->query('file');
+        $fileParam = $request->query('file');
+        $selectedFile = $fileParam !== null ? LogInspector::decodeFile((string) $fileParam) : null;
 
         if (empty($selectedFile) && ! empty($files)) {
             $selectedFile = $files[0]['name'];
@@ -86,7 +87,8 @@ final class DashboardController
     {
         $this->authorizeIfGateMode('view');
 
-        $file = (string) $request->query('file');
+        $fileParam = (string) $request->query('file');
+        $file = LogInspector::decodeFile($fileParam);
         $offset = (int) $request->query('offset', 0);
         $length = (int) $request->query('length', 0);
 

@@ -21,7 +21,7 @@
 
                 <div class="list-group list-group-flush li-file-list">
                     @forelse($files as $f)
-                        <a href="{{ route('log-inspector.index', ['file' => $f['name']]) }}"
+                        <a href="{{ route('log-inspector.index', ['file' => $f['identifier']]) }}"
                             class="list-group-item list-group-item-action li-file-item {{ $selectedFile === $f['name'] ? 'active' : '' }}"
                             data-filename="{{ $f['name'] }}">
                             <div class="text-truncate me-2" title="{{ $f['name'] }}">
@@ -49,7 +49,7 @@
                     <div class="card-body p-2">
                         @foreach ($stats['top_exceptions'] as $ex)
                             <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
-                                <a href="{{ route('log-inspector.index', ['file' => $selectedFile, 'exception_hash' => $ex['hash']]) }}"
+                                <a href="{{ route('log-inspector.index', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile), 'exception_hash' => $ex['hash']]) }}"
                                     class="text-danger small font-monospace text-decoration-none text-truncate me-2">
                                     #{{ $ex['hash'] }}
                                 </a>
@@ -89,11 +89,11 @@
 
                     <div class="d-flex align-items-center gap-2">
                         @if (config('log-inspector.access.mode') === 'gate')
-                            <a href="{{ route('log-inspector.download', ['file' => $selectedFile]) }}"
+                            <a href="{{ route('log-inspector.download', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile)]) }}"
                                 class="btn btn-sm btn-outline-primary">
                                 ⬇️ Download Masked
                             </a>
-                            <a href="{{ route('log-inspector.download', ['file' => $selectedFile, 'raw' => 1]) }}"
+                            <a href="{{ route('log-inspector.download', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile), 'raw' => 1]) }}"
                                 class="btn btn-sm btn-outline-danger">
                                 ⬇️ Download Raw
                             </a>
@@ -101,7 +101,7 @@
                                 <form method="POST" action="{{ route('log-inspector.destroy') }}"
                                     onsubmit="return confirm('Hapus file log ini secara permanen?');" class="d-inline m-0">
                                     @csrf
-                                    <input type="hidden" name="file" value="{{ $selectedFile }}">
+                                    <input type="hidden" name="file" value="{{ \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile) }}">
                                     <button type="submit" class="btn btn-sm btn-danger">
                                         🗑️ Delete
                                     </button>
@@ -151,7 +151,7 @@
             <!-- Filter Bar with Pagination per_page selector -->
             <div class="li-card p-3 mb-3">
                 <form method="GET" action="{{ route('log-inspector.index') }}" class="row g-2 align-items-center">
-                    <input type="hidden" name="file" value="{{ $selectedFile }}">
+                    <input type="hidden" name="file" value="{{ \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile) }}">
 
                     <div class="col-md-3">
                         <select name="level" class="form-select form-select-sm">
@@ -184,7 +184,7 @@
 
                     <div class="col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-sm btn-primary flex-fill">Filter</button>
-                        <a href="{{ route('log-inspector.index', ['file' => $selectedFile]) }}"
+                        <a href="{{ route('log-inspector.index', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile)]) }}"
                             class="btn btn-sm btn-outline-secondary">Reset</a>
                     </div>
                 </form>
@@ -236,7 +236,7 @@
                                         <button type="button"
                                             class="btn btn-sm btn-outline-secondary py-1 px-2 js-view-log"
                                             style="font-size: 0.775rem;"
-                                            data-detail-url="{{ route('log-inspector.show', ['file' => $selectedFile, 'offset' => $entry->byteOffset, 'length' => $entry->byteLength]) }}">
+                                            data-detail-url="{{ route('log-inspector.show', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile), 'offset' => $entry->byteOffset, 'length' => $entry->byteLength]) }}">
                                             View
                                         </button>
                                     </td>
@@ -276,10 +276,14 @@
                     @endphp
 
                     <ul class="pagination pagination-sm mb-0">
+                        @php
+                            $encodedSelected = \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile);
+                        @endphp
+
                         {{-- First Page --}}
                         <li class="page-item {{ $entries->onFirstPage() ? 'disabled' : '' }}">
                             <a class="page-link"
-                                href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => 1])) }}"
+                                href="{{ route('log-inspector.index', array_merge($filters, ['file' => $encodedSelected, 'page' => 1])) }}"
                                 title="Halaman Pertama">
                                 ««
                             </a>
@@ -288,7 +292,7 @@
                         {{-- Previous Page --}}
                         <li class="page-item {{ $entries->onFirstPage() ? 'disabled' : '' }}">
                             <a class="page-link"
-                                href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => max(1, $current - 1)])) }}">
+                                href="{{ route('log-inspector.index', array_merge($filters, ['file' => $encodedSelected, 'page' => max(1, $current - 1)])) }}">
                                 ‹ Prev
                             </a>
                         </li>
@@ -302,7 +306,7 @@
                         @for ($p = $start; $p <= $end; $p++)
                             <li class="page-item {{ $p === $current ? 'active' : '' }}">
                                 <a class="page-link"
-                                    href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $p])) }}">
+                                    href="{{ route('log-inspector.index', array_merge($filters, ['file' => $encodedSelected, 'page' => $p])) }}">
                                     {{ $p }}
                                 </a>
                             </li>
@@ -316,7 +320,7 @@
                         {{-- Next Page --}}
                         <li class="page-item {{ $entries->hasMorePages() ? '' : 'disabled' }}">
                             <a class="page-link"
-                                href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => min($last, $current + 1)])) }}">
+                                href="{{ route('log-inspector.index', array_merge($filters, ['file' => $encodedSelected, 'page' => min($last, $current + 1)])) }}">
                                 Next ›
                             </a>
                         </li>
@@ -324,7 +328,7 @@
                         {{-- Last Page --}}
                         <li class="page-item {{ $current === $last ? 'disabled' : '' }}">
                             <a class="page-link"
-                                href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $last])) }}"
+                                href="{{ route('log-inspector.index', array_merge($filters, ['file' => $encodedSelected, 'page' => $last])) }}"
                                 title="Halaman Terakhir">
                                 »»
                             </a>

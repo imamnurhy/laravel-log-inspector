@@ -69,9 +69,35 @@ final class LogInspector
     }
 
     /**
+     * Encode filename to URL-safe opaque identifier without .log extension.
+     */
+    public static function encodeFile(string $fileName): string
+    {
+        return rtrim(strtr(base64_encode($fileName), '+/', '-_'), '=');
+    }
+
+    /**
+     * Decode URL-safe opaque identifier back to original filename.
+     */
+    public static function decodeFile(string $fileIdentifier): string
+    {
+        // If it already ends with .log / .gz / .txt, return directly (backward compatibility)
+        if (str_ends_with($fileIdentifier, '.log') || str_ends_with($fileIdentifier, '.gz') || str_ends_with($fileIdentifier, '.txt')) {
+            return $fileIdentifier;
+        }
+
+        $decoded = base64_decode(strtr($fileIdentifier, '-_', '+/'), true);
+        if ($decoded === false || $decoded === '') {
+            return $fileIdentifier;
+        }
+
+        return $decoded;
+    }
+
+    /**
      * List all log files detected in allowed directories.
      *
-     * @return array<int, array{name: string, path: string, size: int, mtime: int, is_active: bool}>
+     * @return array<int, array{name: string, identifier: string, path: string, size: int, mtime: int, is_active: bool}>
      */
     public function files(): array
     {
@@ -105,6 +131,7 @@ final class LogInspector
 
                 $files[] = [
                     'name' => $item,
+                    'identifier' => self::encodeFile($item),
                     'path' => $fullPath,
                     'size' => (int) filesize($fullPath),
                     'mtime' => (int) filemtime($fullPath),
