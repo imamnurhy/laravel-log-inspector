@@ -134,13 +134,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 4. Live Tail Polling (Short Polling every 4s for active log file)
-    var liveTailToggle = document.getElementById('liveTailToggle');
+    // 4. Auto Refresh Polling (Configurable interval for active log file)
+    var autoRefreshToggle = document.getElementById('autoRefreshToggle');
+    var autoRefreshInterval = document.getElementById('autoRefreshInterval');
     var logTableBody = document.getElementById('logTableBody');
-    if (liveTailToggle && logTableBody) {
+    if (autoRefreshToggle && logTableBody) {
         var tailTimer = null;
-        var currentOffset = parseInt(liveTailToggle.getAttribute('data-tail-offset') || '0', 10);
-        var tailBaseUrl = liveTailToggle.getAttribute('data-tail-url');
+        var currentOffset = parseInt(autoRefreshToggle.getAttribute('data-tail-offset') || '0', 10);
+        var tailBaseUrl = autoRefreshToggle.getAttribute('data-tail-url');
 
         function buildLogRow(entry) {
             var tr = document.createElement('tr');
@@ -201,8 +202,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return tr;
         }
 
+        function getIntervalMs() {
+            return autoRefreshInterval ? parseInt(autoRefreshInterval.value || '5000', 10) : 5000;
+        }
+
         function pollTail() {
-            if (!liveTailToggle.checked) return;
+            if (!autoRefreshToggle.checked) return;
 
             var sep = tailBaseUrl.indexOf('?') !== -1 ? '&' : '?';
             fetch(tailBaseUrl + sep + 'offset=' + currentOffset, {
@@ -213,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(function (res) {
                 if (res.status === 404 || res.status === 403) {
-                    liveTailToggle.checked = false;
+                    autoRefreshToggle.checked = false;
                     clearInterval(tailTimer);
                     tailTimer = null;
                     return null;
@@ -239,14 +244,35 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        liveTailToggle.addEventListener('change', function () {
-            if (this.checked) {
-                pollTail();
-                tailTimer = setInterval(pollTail, 4000);
-            } else if (tailTimer) {
+        function startPolling() {
+            if (tailTimer) {
+                clearInterval(tailTimer);
+            }
+            pollTail();
+            tailTimer = setInterval(pollTail, getIntervalMs());
+        }
+
+        function stopPolling() {
+            if (tailTimer) {
                 clearInterval(tailTimer);
                 tailTimer = null;
             }
+        }
+
+        autoRefreshToggle.addEventListener('change', function () {
+            if (this.checked) {
+                startPolling();
+            } else {
+                stopPolling();
+            }
         });
+
+        if (autoRefreshInterval) {
+            autoRefreshInterval.addEventListener('change', function () {
+                if (autoRefreshToggle.checked) {
+                    startPolling();
+                }
+            });
+        }
     }
 });
