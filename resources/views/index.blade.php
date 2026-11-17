@@ -88,6 +88,16 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-2">
+                        @if ($selectedMeta && $selectedMeta['is_active'] && !str_ends_with(strtolower($selectedFile), '.gz'))
+                            <div class="form-check form-switch mb-0 me-2 d-flex align-items-center gap-1" title="Auto-refresh entri baru setiap 4 detik">
+                                <input class="form-check-input mt-0" type="checkbox" role="switch" id="liveTailToggle"
+                                    data-tail-url="{{ route('log-inspector.tail', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile)]) }}"
+                                    data-tail-offset="{{ $selectedMeta['size'] ?? 0 }}">
+                                <label class="form-check-label small fw-semibold text-success" for="liveTailToggle" style="cursor: pointer;">
+                                    Live Tail
+                                </label>
+                            </div>
+                        @endif
                         @if (config('log-inspector.access.mode') === 'gate')
                             <a href="{{ route('log-inspector.download', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile)]) }}"
                                 class="btn btn-sm btn-outline-primary">
@@ -208,7 +218,7 @@
                             <th style="width: 80px;" class="text-end">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="logTableBody">
                         @if ($entries)
                             @forelse($entries as $entry)
                                 <tr>

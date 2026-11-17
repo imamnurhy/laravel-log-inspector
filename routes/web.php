@@ -52,6 +52,7 @@ if (config('log-inspector.enabled', false)) {
             // Dashboard views (Read-only and masked for link mode)
             Route::get('/', [DashboardController::class, 'index'])->name('index');
             Route::get('/show', [DashboardController::class, 'show'])->name('show');
+            Route::get('/tail', [DashboardController::class, 'tail'])->name('tail');
 
             // End session action (Link mode)
             Route::post('/logout', [LinkExchangeController::class, 'logout'])->name('logout');

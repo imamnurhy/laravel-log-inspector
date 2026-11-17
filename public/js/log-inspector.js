@@ -133,4 +133,120 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // 4. Live Tail Polling (Short Polling every 4s for active log file)
+    var liveTailToggle = document.getElementById('liveTailToggle');
+    var logTableBody = document.getElementById('logTableBody');
+    if (liveTailToggle && logTableBody) {
+        var tailTimer = null;
+        var currentOffset = parseInt(liveTailToggle.getAttribute('data-tail-offset') || '0', 10);
+        var tailBaseUrl = liveTailToggle.getAttribute('data-tail-url');
+
+        function buildLogRow(entry) {
+            var tr = document.createElement('tr');
+            tr.style.backgroundColor = '#f0fdf4';
+
+            var tdTime = document.createElement('td');
+            var spanTime = document.createElement('span');
+            spanTime.className = 'li-log-timestamp';
+            spanTime.textContent = entry.timestamp;
+            tdTime.appendChild(spanTime);
+
+            var tdLevel = document.createElement('td');
+            var spanLevel = document.createElement('span');
+            spanLevel.className = 'li-level-badge ' + entry.badge_class;
+            spanLevel.textContent = entry.level;
+            tdLevel.appendChild(spanLevel);
+
+            var tdChannel = document.createElement('td');
+            var spanChannel = document.createElement('span');
+            spanChannel.className = 'li-log-channel';
+            spanChannel.textContent = entry.channel;
+            tdChannel.appendChild(spanChannel);
+
+            var tdMsg = document.createElement('td');
+            var divMsg = document.createElement('div');
+            divMsg.className = 'li-log-msg';
+            divMsg.textContent = entry.message;
+            tdMsg.appendChild(divMsg);
+
+            if (entry.has_exception) {
+                var divEx = document.createElement('div');
+                divEx.className = 'li-exception-highlight';
+                divEx.textContent = '💥 ' + (entry.exception_class || '') + ': ' + (entry.exception_location || '');
+                tdMsg.appendChild(divEx);
+            }
+
+            var tdAction = document.createElement('td');
+            tdAction.className = 'text-end';
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-sm btn-outline-secondary py-1 px-2 js-view-log';
+            btn.style.fontSize = '0.775rem';
+            btn.setAttribute('data-detail-url', entry.detail_url);
+            btn.textContent = 'View';
+            tdAction.appendChild(btn);
+
+            tr.appendChild(tdTime);
+            tr.appendChild(tdLevel);
+            tr.appendChild(tdChannel);
+            tr.appendChild(tdMsg);
+            tr.appendChild(tdAction);
+
+            setTimeout(function () {
+                tr.style.transition = 'background-color 1s ease';
+                tr.style.backgroundColor = '';
+            }, 2500);
+
+            return tr;
+        }
+
+        function pollTail() {
+            if (!liveTailToggle.checked) return;
+
+            var sep = tailBaseUrl.indexOf('?') !== -1 ? '&' : '?';
+            fetch(tailBaseUrl + sep + 'offset=' + currentOffset, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function (res) {
+                if (res.status === 404 || res.status === 403) {
+                    liveTailToggle.checked = false;
+                    clearInterval(tailTimer);
+                    tailTimer = null;
+                    return null;
+                }
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (data) {
+                if (!data) return;
+                if (typeof data.offset === 'number') {
+                    currentOffset = data.offset;
+                }
+                if (data.entries && data.entries.length > 0) {
+                    // Prepend newest entries at top of table
+                    for (var i = 0; i < data.entries.length; i++) {
+                        var row = buildLogRow(data.entries[i]);
+                        logTableBody.insertBefore(row, logTableBody.firstChild);
+                    }
+                }
+            })
+            .catch(function () {
+                // Silently retry on transient network error
+            });
+        }
+
+        liveTailToggle.addEventListener('change', function () {
+            if (this.checked) {
+                pollTail();
+                tailTimer = setInterval(pollTail, 4000);
+            } else if (tailTimer) {
+                clearInterval(tailTimer);
+                tailTimer = null;
+            }
+        });
+    }
 });

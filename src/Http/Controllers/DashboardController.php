@@ -142,6 +142,116 @@ final class DashboardController
         ]);
     }
 
+    /**
+     * Poll for new log entries appended after the given byte offset (Live Tail).
+     */
+    public function tail(Request $request): JsonResponse
+    {
+        $this->authorizeIfGateMode('view');
+
+        $fileParam = (string) $request->query('file');
+        $file = LogInspector::decodeFile($fileParam);
+        $offset = max(0, (int) $request->query('offset', 0));
+
+        $allowedDirs = (array) config('log-inspector.paths', []);
+        $validatedFile = $this->pathGuard->validate($file, $allowedDirs);
+
+        if (str_ends_with(strtolower($validatedFile), '.gz')) {
+            return response()->json(['entries' => [], 'offset' => $offset]);
+        }
+
+        clearstatcache(true, $validatedFile);
+        $currentSize = (int) filesize($validatedFile);
+
+        // File was rotated or truncated
+        if ($currentSize < $offset) {
+            return response()->json([
+                'entries' => [],
+                'offset' => $currentSize,
+                'reset' => true,
+            ]);
+        }
+
+        // No new bytes
+        if ($currentSize === $offset) {
+            return response()->json([
+                'entries' => [],
+                'offset' => $currentSize,
+            ]);
+        }
+
+        // Cap delta read per poll to 512 KB to keep polling fast and memory-safe
+        $maxDelta = 524288;
+        $readLength = min($currentSize - $offset, $maxDelta);
+
+        $handle = fopen($validatedFile, 'rb');
+        if ($handle === false) {
+            abort(404, 'Cannot open log file.');
+        }
+
+        $entries = [];
+        try {
+            fseek($handle, $offset, SEEK_SET);
+            $parser = app(\Explorin\LogInspector\Contracts\LogParserInterface::class);
+
+            $currentEntryOffset = $offset;
+            $currentEntryText = '';
+            $streamOffset = $offset;
+            $bytesRead = 0;
+
+            while (! feof($handle) && $bytesRead < $readLength) {
+                $line = fgets($handle, 65536);
+                if ($line === false) {
+                    break;
+                }
+
+                $lineLength = strlen($line);
+                $bytesRead += $lineLength;
+
+                if ($parser->isEntryStart($line) && $currentEntryText !== '') {
+                    $entryLength = $streamOffset - $currentEntryOffset;
+                    $entries[] = $parser->parse(trim($currentEntryText), $currentEntryOffset, $entryLength);
+                    $currentEntryOffset = $streamOffset;
+                    $currentEntryText = '';
+                }
+
+                $currentEntryText .= $line;
+                $streamOffset += $lineLength;
+            }
+
+            if (trim($currentEntryText) !== '') {
+                $entryLength = $streamOffset - $currentEntryOffset;
+                $entries[] = $parser->parse(trim($currentEntryText), $currentEntryOffset, $entryLength);
+            }
+        } finally {
+            fclose($handle);
+        }
+
+        $encodedFile = LogInspector::encodeFile($file);
+        $formatted = array_map(static function ($entry) use ($encodedFile) {
+            return [
+                'timestamp' => $entry->formattedTimestamp(),
+                'level' => $entry->level->value,
+                'badge_class' => $entry->level->badgeClass(),
+                'channel' => $entry->channel,
+                'message' => \Illuminate\Support\Str::limit(trim($entry->message), 240),
+                'has_exception' => $entry->hasException(),
+                'exception_class' => $entry->exceptionClass,
+                'exception_location' => $entry->exceptionLocation(),
+                'detail_url' => route('log-inspector.show', [
+                    'file' => $encodedFile,
+                    'offset' => $entry->byteOffset,
+                    'length' => $entry->byteLength,
+                ]),
+            ];
+        }, $entries);
+
+        return response()->json([
+            'entries' => $formatted,
+            'offset' => $streamOffset,
+        ]);
+    }
+
     private function authorizeIfGateMode(string $ability): void
     {
         $mode = (string) config('log-inspector.access.mode', 'link');
