@@ -148,13 +148,13 @@
                 </div>
             @endif
 
-            <!-- Filter Bar with Pagination per_page selector -->
+            <!-- Filter Bar with Pagination per_page & Auto Refresh in 1 compact row -->
             <div class="li-card p-3 mb-3">
-                <form method="GET" action="{{ route('log-inspector.index') }}" class="row g-2 align-items-center">
-                    <input type="hidden" name="file" value="{{ \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile) }}">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <form method="GET" action="{{ route('log-inspector.index') }}" class="d-flex flex-wrap align-items-center gap-2 flex-grow-1">
+                        <input type="hidden" name="file" value="{{ \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile) }}">
 
-                    <div class="col-md-3">
-                        <select name="level" class="form-select form-select-sm">
+                        <select name="level" class="form-select form-select-sm" style="width: auto; min-width: 120px;">
                             <option value="">All Levels</option>
                             @foreach (['EMERGENCY', 'ALERT', 'CRITICAL', 'ERROR', 'WARNING', 'NOTICE', 'INFO', 'DEBUG'] as $lvl)
                                 <option value="{{ $lvl }}"
@@ -163,15 +163,11 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
 
-                    <div class="col-md-5">
-                        <input type="text" name="search" class="form-control form-control-sm"
+                        <input type="text" name="search" class="form-control form-control-sm flex-grow-1" style="min-width: 180px;"
                             placeholder="Search literal message or context..." value="{{ $filters['search'] ?? '' }}">
-                    </div>
 
-                    <div class="col-md-2">
-                        <select name="per_page" class="form-select form-select-sm" title="Jumlah entri per halaman"
+                        <select name="per_page" class="form-select form-select-sm" style="width: auto;" title="Jumlah entri per halaman"
                             onchange="this.form.submit()">
                             @foreach ([10, 25, 50, 100, 200] as $size)
                                 <option value="{{ $size }}"
@@ -180,33 +176,31 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
 
-                    <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-sm btn-primary flex-fill">Filter</button>
+                        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
                         <a href="{{ route('log-inspector.index', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile)]) }}"
                             class="btn btn-sm btn-outline-secondary">Reset</a>
-                    </div>
-                </form>
+                    </form>
 
-                @if (!empty($selectedFile) && isset($selectedMeta) && $selectedMeta['is_active'] && !str_ends_with(strtolower($selectedFile), '.gz'))
-                    <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mt-2 pt-2 border-top">
-                        <div class="form-check form-switch mb-0 d-flex align-items-center gap-2">
-                            <input class="form-check-input mt-0" type="checkbox" role="switch" id="autoRefreshToggle"
-                                data-tail-url="{{ route('log-inspector.tail', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile)]) }}"
-                                data-tail-offset="{{ $selectedMeta['size'] ?? 0 }}">
-                            <label class="form-check-label small fw-semibold text-secondary" for="autoRefreshToggle" style="cursor: pointer;">
-                                Auto Refresh
-                            </label>
+                    @if (!empty($selectedFile) && isset($selectedMeta) && $selectedMeta['is_active'] && !str_ends_with(strtolower($selectedFile), '.gz'))
+                        <div class="d-flex align-items-center gap-2 ps-2 border-start">
+                            <div class="form-check form-switch mb-0 d-flex align-items-center gap-2">
+                                <input class="form-check-input mt-0" type="checkbox" role="switch" id="autoRefreshToggle"
+                                    data-tail-url="{{ route('log-inspector.tail', ['file' => \Explorin\LogInspector\Services\LogInspector::encodeFile($selectedFile)]) }}"
+                                    data-tail-offset="{{ $selectedMeta['size'] ?? 0 }}">
+                                <label class="form-check-label small fw-semibold text-secondary text-nowrap" for="autoRefreshToggle" style="cursor: pointer;">
+                                    Auto Refresh
+                                </label>
+                            </div>
+                            <select id="autoRefreshInterval" class="form-select form-select-sm" style="width: auto;" title="Interval Auto Refresh">
+                                <option value="3000">3 detik</option>
+                                <option value="5000" selected>5 detik</option>
+                                <option value="10000">10 detik</option>
+                                <option value="30000">30 detik</option>
+                            </select>
                         </div>
-                        <select id="autoRefreshInterval" class="form-select form-select-sm" style="width: auto;" title="Interval Auto Refresh">
-                            <option value="3000">3 detik</option>
-                            <option value="5000" selected>5 detik</option>
-                            <option value="10000">10 detik</option>
-                            <option value="30000">30 detik</option>
-                        </select>
-                    </div>
-                @endif
+                    @endif
+                </div>
             </div>
 
             @if ($entries && $entries->isPartial)
