@@ -1,0 +1,7 @@
+[2026-11-17 10:16:00] production.ERROR: Call to a member function notify() on null {"user_id":42} []
+[stacktrace]
+RuntimeException: Call to a member function notify() on null in /var/www/app/Services/UserService.php:88
+#0 /var/www/app/Http/Controllers/UserController.php(45): App\Services\UserService->sendAlert()
+#1 /var/www/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(48): App\Http\Controllers\UserController->update()
+#2 {main}
+[2026-11-17 10:16:05] production.CRITICAL: Database connection failed {"database":"mysql","password":"super_secret_db_pass_123"} []

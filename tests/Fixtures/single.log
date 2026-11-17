@@ -1,0 +1,2 @@
+[2026-11-17 10:15:30] local.INFO: Application booted successfully. {"app":"explorin","env":"local"} []
+[2026-11-17 10:15:32] local.WARNING: High memory usage detected {"memory_mb":128} []

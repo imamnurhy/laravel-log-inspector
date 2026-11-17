@@ -1,0 +1,5 @@
+/vendor
+/.phpunit.cache
+/tests/Fixtures/*.gz
+.DS_Store
+.env
