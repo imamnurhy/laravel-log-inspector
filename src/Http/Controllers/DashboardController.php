@@ -6,6 +6,7 @@ namespace Explorin\LogInspector\Http\Controllers;
 
 use Explorin\LogInspector\Contracts\PathGuardInterface;
 use Explorin\LogInspector\Services\LogInspector;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -23,7 +24,7 @@ final class DashboardController
      */
     public function index(Request $request): View
     {
-        $this->authorize('view');
+        $this->authorizeIfGateMode('view');
 
         $files = $this->logInspector->files();
         $selectedFile = $request->query('file');
@@ -34,11 +35,10 @@ final class DashboardController
 
         $entries = null;
         $stats = null;
-        $activeFilePath = null;
 
         if (! empty($selectedFile)) {
             $allowedDirs = (array) config('log-inspector.paths', []);
-            $activeFilePath = $this->pathGuard->validate($selectedFile, $allowedDirs);
+            $this->pathGuard->validate($selectedFile, $allowedDirs);
 
             $query = $this->logInspector->query()->file($selectedFile);
 
@@ -75,10 +75,11 @@ final class DashboardController
 
     /**
      * Show detail of an individual log entry or exception.
+     * Supports both HTML view and JSON responses for modal popups.
      */
-    public function show(Request $request): View
+    public function show(Request $request): View|JsonResponse
     {
-        $this->authorize('view');
+        $this->authorizeIfGateMode('view');
 
         $file = (string) $request->query('file');
         $offset = (int) $request->query('offset', 0);
@@ -106,18 +107,43 @@ final class DashboardController
         $parser = app(\Explorin\LogInspector\Contracts\LogParserInterface::class);
         $entry = $parser->parse($rawText, $offset, $length);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'id' => $entry->id,
+                'timestamp' => $entry->formattedTimestamp(),
+                'environment' => $entry->environment,
+                'level' => $entry->level->value,
+                'badge_class' => $entry->level->badgeClass(),
+                'channel' => $entry->channel,
+                'message' => $entry->message,
+                'context' => $entry->context,
+                'extra' => $entry->extra,
+                'has_exception' => $entry->hasException(),
+                'exception_class' => $entry->exceptionClass,
+                'exception_location' => $entry->exceptionLocation(),
+                'exception_hash' => $entry->exceptionHash(),
+                'stack_trace' => $entry->stackTrace,
+                'raw' => $entry->raw ?? $entry->message,
+                'byte_offset' => $entry->byteOffset,
+                'byte_length' => $entry->byteLength,
+            ]);
+        }
+
         return view('log-inspector::show', [
             'entry' => $entry,
             'file' => $file,
         ]);
     }
 
-    private function authorize(string $ability): void
+    private function authorizeIfGateMode(string $ability): void
     {
-        $gateName = (string) config("log-inspector.authorization.{$ability}", "{$ability}-log-inspector");
+        $mode = (string) config('log-inspector.access.mode', 'link');
+        if ($mode === 'gate') {
+            $gateName = (string) config("log-inspector.authorization.{$ability}", "{$ability}-log-inspector");
 
-        if (! Gate::has($gateName) || ! Gate::allows($gateName)) {
-            abort(403, sprintf('Access denied. Missing or unauthorized gate [%s].', $gateName));
+            if (! Gate::has($gateName) || ! Gate::allows($gateName)) {
+                abort(403, sprintf('Access denied. Missing or unauthorized gate [%s].', $gateName));
+            }
         }
     }
 }

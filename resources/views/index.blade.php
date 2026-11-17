@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="row g-3">
-    <!-- Sidebar / File Selector (Fixed 280px / 3 cols) -->
+    <!-- Sidebar / File Selector -->
     <div class="col-lg-3 col-md-4">
         <div class="card li-card mb-3">
             <div class="card-header bg-white py-2 px-3 fw-bold small text-uppercase text-muted border-bottom d-flex justify-content-between align-items-center">
@@ -48,7 +48,7 @@
         @endif
     </div>
 
-    <!-- Main Content Area (9 cols) -->
+    <!-- Main Content Area -->
     <div class="col-lg-9 col-md-8">
         @if(session('status'))
             <div class="alert alert-success py-2 px-3 small mb-3">
@@ -204,10 +204,13 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('log-inspector.show', ['file' => $selectedFile, 'offset' => $entry->byteOffset, 'length' => $entry->byteLength]) }}" 
-                                       class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size: 0.775rem;">
+                                    {{-- Open via Modal Popup instead of navigating away --}}
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-secondary py-1 px-2 js-view-log" 
+                                            style="font-size: 0.775rem;"
+                                            data-detail-url="{{ route('log-inspector.show', ['file' => $selectedFile, 'offset' => $entry->byteOffset, 'length' => $entry->byteLength]) }}">
                                         View
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -251,6 +254,87 @@
             </ul>
         </div>
         @endif
+    </div>
+</div>
+
+<!-- Log Detail Modal Popup -->
+<div class="modal fade" id="logDetailModal" tabindex="-1" aria-labelledby="logDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header py-3 px-4 bg-light border-bottom">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span id="modalLevelBadge" class="li-level-badge"></span>
+                    <span id="modalTimestamp" class="li-log-timestamp small"></span>
+                    <span id="modalChannel" class="badge bg-light text-secondary border small"></span>
+                    <span id="modalEnvironment" class="badge bg-dark small"></span>
+                </div>
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <span id="modalOffsets" class="small text-muted font-monospace me-2"></span>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-copy-target="modalRawContent">
+                        📋 Salin Log
+                    </button>
+                    <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <div class="modal-body p-4">
+                <!-- Loading Spinner -->
+                <div id="modalLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="text-muted small mt-2">Memuat data log...</div>
+                </div>
+
+                <!-- Actual Content (Hidden until loaded) -->
+                <div id="modalContent" style="display: none;">
+                    <h6 class="fw-bold mb-2 text-secondary text-uppercase small" style="letter-spacing: 0.05em;">Pesan Log</h6>
+                    <div class="li-code-light mb-4" id="modalMessage"></div>
+
+                    <!-- Exception Inspector Box -->
+                    <div id="modalExceptionSection" style="display: none;">
+                        <h6 class="fw-bold text-danger text-uppercase small mb-2" style="letter-spacing: 0.05em;">Detail Exception</h6>
+                        <div class="p-3 bg-light border border-danger rounded mb-4" style="background-color: #fff5f5 !important;">
+                            <div class="fw-bold text-danger fs-6" id="modalExClass"></div>
+                            <div class="small font-monospace text-dark mt-1" id="modalExLocation"></div>
+                            <div class="small text-muted mt-2">
+                                Hash Signature: <span class="badge bg-danger" id="modalExHash"></span>
+                            </div>
+                        </div>
+
+                        <div id="modalTraceSection" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-secondary text-uppercase small mb-0" style="letter-spacing: 0.05em;">
+                                    Stack Trace (<span id="modalTraceCount">0</span> frames)
+                                </h6>
+                                <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size: 0.725rem;" data-copy-target="modalStackTrace">
+                                    Salin Trace
+                                </button>
+                            </div>
+                            <pre class="li-code-dark mb-4" id="modalStackTrace"></pre>
+                        </div>
+                    </div>
+
+                    <!-- Context JSON Box -->
+                    <div id="modalContextSection" style="display: none;">
+                        <h6 class="fw-bold text-secondary text-uppercase small mb-2" style="letter-spacing: 0.05em;">Context JSON</h6>
+                        <pre class="li-code-light mb-4" id="modalContext"></pre>
+                    </div>
+
+                    <!-- Extra Box -->
+                    <div id="modalExtraSection" style="display: none;">
+                        <h6 class="fw-bold text-secondary text-uppercase small mb-2" style="letter-spacing: 0.05em;">Extra Metadata</h6>
+                        <pre class="li-code-light mb-4" id="modalExtra"></pre>
+                    </div>
+
+                    <div id="modalRawContent" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer py-2 px-4 bg-light border-top">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
