@@ -55,7 +55,7 @@ final class DashboardController
             }
 
             $perPage = min(
-                (int) $request->query('per_page', config('log-inspector.limits.per_page', 50)),
+                (int) $request->query('per_page', config('log-inspector.limits.per_page', 10)),
                 (int) config('log-inspector.limits.max_per_page', 200)
             );
             $page = max(1, (int) $request->query('page', 1));
