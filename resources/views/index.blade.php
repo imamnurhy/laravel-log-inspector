@@ -167,8 +167,8 @@
                 </div>
 
                 <div class="col-md-2">
-                    <select name="per_page" class="form-select form-select-sm" title="Jumlah entri per halaman">
-                        @foreach([25, 50, 100, 200] as $size)
+                    <select name="per_page" class="form-select form-select-sm" title="Jumlah entri per halaman" onchange="this.form.submit()">
+                        @foreach([10, 25, 50, 100, 200] as $size)
                             <option value="{{ $size }}" {{ ((int) ($filters['per_page'] ?? 50)) === $size ? 'selected' : '' }}>
                                 {{ $size }} / hal
                             </option>
@@ -254,16 +254,16 @@
             </table>
         </div>
 
-        <!-- Full Multi-Page Pagination Bar -->
-        @if($entries && $entries->lastPage() > 1)
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+        <!-- Full Multi-Page Pagination Bar (Always rendered when entries exist) -->
+        @if($entries)
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 p-2 bg-white rounded border">
             <div class="small text-muted">
-                Menampilkan <b>{{ count($entries) }}</b> dari <b>{{ number_format($entries->total) }}</b> entri (Halaman {{ $entries->currentPage }} dari {{ $entries->lastPage() }})
+                Menampilkan <b>{{ count($entries) }}</b> dari <b>{{ number_format($entries->total) }}</b> entri (Halaman {{ $entries->currentPage }} dari {{ max(1, $entries->lastPage()) }})
             </div>
 
             @php
                 $current = $entries->currentPage;
-                $last = $entries->lastPage();
+                $last = max(1, $entries->lastPage());
                 $start = max(1, $current - 2);
                 $end = min($last, $current + 2);
             @endphp
@@ -278,7 +278,7 @@
 
                 {{-- Previous Page --}}
                 <li class="page-item {{ $entries->onFirstPage() ? 'disabled' : '' }}">
-                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $current - 1])) }}">
+                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => max(1, $current - 1)])) }}">
                         ‹ Prev
                     </a>
                 </li>
@@ -304,7 +304,7 @@
 
                 {{-- Next Page --}}
                 <li class="page-item {{ $entries->hasMorePages() ? '' : 'disabled' }}">
-                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $current + 1])) }}">
+                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => min($last, $current + 1)])) }}">
                         Next ›
                     </a>
                 </li>
