@@ -1,4 +1,4 @@
-// Explorin Log Inspector Interactive Modal & Clipboard Helper
+// Explorin Log Inspector Interactive Modal, Clipboard & Filter Helpers
 document.addEventListener('DOMContentLoaded', function () {
     // 1. Copy to clipboard helper
     document.addEventListener('click', function (e) {
@@ -19,7 +19,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // 2. Log Entry Detail Modal via AJAX
+    // 2. Realtime Sidebar Log Files Search Filter
+    var fileSearchInput = document.getElementById('logFileSearchInput');
+    if (fileSearchInput) {
+        fileSearchInput.addEventListener('input', function () {
+            var filter = this.value.toLowerCase().trim();
+            var fileItems = document.querySelectorAll('.li-file-list .li-file-item');
+            var matchCount = 0;
+
+            fileItems.forEach(function (item) {
+                var fileName = item.getAttribute('data-filename') || item.innerText.toLowerCase();
+                if (fileName.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = 'flex';
+                    matchCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            var noMatchesEl = document.getElementById('liNoFileMatches');
+            if (noMatchesEl) {
+                noMatchesEl.style.display = matchCount === 0 ? 'block' : 'none';
+            }
+        });
+    }
+
+    // 3. Log Entry Detail Modal via AJAX
     var detailModalEl = document.getElementById('logDetailModal');
     if (detailModalEl && typeof bootstrap !== 'undefined') {
         var logModal = new bootstrap.Modal(detailModalEl);

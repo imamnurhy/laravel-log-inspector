@@ -11,10 +11,21 @@
                 <span>📁 Log Files</span>
                 <span class="badge bg-light text-dark border">{{ count($files) }}</span>
             </div>
+
+            <!-- Instant Search Input for Log Files -->
+            <div class="p-2 border-bottom bg-light">
+                <input type="text" 
+                       id="logFileSearchInput" 
+                       class="form-control form-control-sm" 
+                       placeholder="Cari file log (mis. 2026-11)..."
+                       autocomplete="off">
+            </div>
+
             <div class="list-group list-group-flush li-file-list">
                 @forelse($files as $f)
                     <a href="{{ route('log-inspector.index', ['file' => $f['name']]) }}" 
-                       class="list-group-item list-group-item-action li-file-item {{ $selectedFile === $f['name'] ? 'active' : '' }}">
+                       class="list-group-item list-group-item-action li-file-item {{ $selectedFile === $f['name'] ? 'active' : '' }}"
+                       data-filename="{{ $f['name'] }}">
                         <div class="text-truncate me-2" title="{{ $f['name'] }}">
                             {{ $f['name'] }}
                         </div>
@@ -25,6 +36,9 @@
                 @empty
                     <div class="p-3 text-muted text-center small">No log files found.</div>
                 @endforelse
+                <div id="liNoFileMatches" class="p-3 text-muted text-center small" style="display: none;">
+                    Tidak ada file yang cocok.
+                </div>
             </div>
         </div>
 
@@ -130,7 +144,7 @@
         </div>
         @endif
 
-        <!-- Filter Bar -->
+        <!-- Filter Bar with Pagination per_page selector -->
         <div class="li-card p-3 mb-3">
             <form method="GET" action="{{ route('log-inspector.index') }}" class="row g-2 align-items-center">
                 <input type="hidden" name="file" value="{{ $selectedFile }}">
@@ -146,13 +160,23 @@
                     </select>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <input type="text" name="search" class="form-control form-control-sm" 
                            placeholder="Search literal message or context..." 
                            value="{{ $filters['search'] ?? '' }}">
                 </div>
 
-                <div class="col-md-3 d-flex gap-2">
+                <div class="col-md-2">
+                    <select name="per_page" class="form-select form-select-sm" title="Jumlah entri per halaman">
+                        @foreach([25, 50, 100, 200] as $size)
+                            <option value="{{ $size }}" {{ ((int) ($filters['per_page'] ?? 50)) === $size ? 'selected' : '' }}>
+                                {{ $size }} / hal
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-sm btn-primary flex-fill">Filter</button>
                     <a href="{{ route('log-inspector.index', ['file' => $selectedFile]) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
                 </div>
@@ -204,7 +228,6 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    {{-- Open via Modal Popup instead of navigating away --}}
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-secondary py-1 px-2 js-view-log" 
                                             style="font-size: 0.775rem;"
@@ -231,24 +254,65 @@
             </table>
         </div>
 
-        <!-- Pagination Bar -->
-        @if($entries && $entries->hasPages())
+        <!-- Full Multi-Page Pagination Bar -->
+        @if($entries && $entries->lastPage() > 1)
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
             <div class="small text-muted">
-                Showing {{ count($entries) }} of {{ number_format($entries->total) }} entries (Page {{ $entries->currentPage }} of {{ $entries->lastPage() }})
+                Menampilkan <b>{{ count($entries) }}</b> dari <b>{{ number_format($entries->total) }}</b> entri (Halaman {{ $entries->currentPage }} dari {{ $entries->lastPage() }})
             </div>
+
+            @php
+                $current = $entries->currentPage;
+                $last = $entries->lastPage();
+                $start = max(1, $current - 2);
+                $end = min($last, $current + 2);
+            @endphp
+
             <ul class="pagination pagination-sm mb-0">
+                {{-- First Page --}}
                 <li class="page-item {{ $entries->onFirstPage() ? 'disabled' : '' }}">
-                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $entries->currentPage - 1])) }}">
-                        Previous
+                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => 1])) }}" title="Halaman Pertama">
+                        ««
                     </a>
                 </li>
-                <li class="page-item active">
-                    <span class="page-link">{{ $entries->currentPage }}</span>
+
+                {{-- Previous Page --}}
+                <li class="page-item {{ $entries->onFirstPage() ? 'disabled' : '' }}">
+                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $current - 1])) }}">
+                        ‹ Prev
+                    </a>
                 </li>
+
+                {{-- Ellipsis Start --}}
+                @if($start > 1)
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                @endif
+
+                {{-- Page Numbers (Window of +/- 2) --}}
+                @for($p = $start; $p <= $end; $p++)
+                    <li class="page-item {{ $p === $current ? 'active' : '' }}">
+                        <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $p])) }}">
+                            {{ $p }}
+                        </a>
+                    </li>
+                @endfor
+
+                {{-- Ellipsis End --}}
+                @if($end < $last)
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                @endif
+
+                {{-- Next Page --}}
                 <li class="page-item {{ $entries->hasMorePages() ? '' : 'disabled' }}">
-                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $entries->currentPage + 1])) }}">
-                        Next
+                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $current + 1])) }}">
+                        Next ›
+                    </a>
+                </li>
+
+                {{-- Last Page --}}
+                <li class="page-item {{ $current === $last ? 'disabled' : '' }}">
+                    <a class="page-link" href="{{ route('log-inspector.index', array_merge($filters, ['file' => $selectedFile, 'page' => $last])) }}" title="Halaman Terakhir">
+                        »»
                     </a>
                 </li>
             </ul>
