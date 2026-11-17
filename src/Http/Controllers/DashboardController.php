@@ -64,12 +64,17 @@ final class DashboardController
             $stats = $this->logInspector->statistics($selectedFile);
         }
 
+        $filters = $request->only(['level', 'search', 'exception_hash', 'per_page']);
+        if (! isset($filters['per_page'])) {
+            $filters['per_page'] = $perPage ?? (int) config('log-inspector.limits.per_page', 10);
+        }
+
         return view('log-inspector::index', [
             'files' => $files,
             'selectedFile' => $selectedFile,
             'entries' => $entries,
             'stats' => $stats,
-            'filters' => $request->only(['level', 'search', 'exception_hash', 'per_page']),
+            'filters' => $filters,
         ]);
     }
 

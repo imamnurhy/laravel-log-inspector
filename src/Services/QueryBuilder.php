@@ -141,7 +141,7 @@ final class QueryBuilder
     /**
      * Build the query DTO.
      */
-    public function toQuery(int $perPage = 50, int $page = 1): LogQuery
+    public function toQuery(int $perPage = 10, int $page = 1): LogQuery
     {
         return new LogQuery(
             file: $this->filePath,
@@ -173,7 +173,7 @@ final class QueryBuilder
     /**
      * Execute paginated query with fast sidecar index or bounded stream scan.
      */
-    public function paginate(int $perPage = 50, int $page = 1): Page
+    public function paginate(int $perPage = 10, int $page = 1): Page
     {
         if ($this->filePath === null) {
             throw new InvalidArgumentException('File path must be specified to paginate.');

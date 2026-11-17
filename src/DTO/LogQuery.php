@@ -25,7 +25,7 @@ final class LogQuery
         public readonly ?string $search = null,
         public readonly ?string $exceptionClass = null,
         public readonly ?string $exceptionHash = null,
-        public readonly int $perPage = 50,
+        public readonly int $perPage = 10,
         public readonly int $page = 1,
     ) {
     }
