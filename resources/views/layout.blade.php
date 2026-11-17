@@ -9,18 +9,18 @@
     <link rel="stylesheet" href="{{ asset('vendor/log-inspector/css/log-inspector.css') }}">
 </head>
 <body class="log-inspector-body">
-    <nav class="navbar navbar-dark bg-dark px-3 py-2 mb-3">
-        <div class="container-fluid d-flex justify-content-between align-items-center">
-            <a class="navbar-brand fw-bold text-white text-decoration-none" href="{{ route('log-inspector.index') }}">
-                🪵 Explorin Log Inspector
+    <nav class="navbar navbar-expand-lg navbar-dark li-navbar">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand li-brand mb-0" href="{{ route('log-inspector.index') }}">
+                <span>🪵</span> Explorin Log Inspector
             </a>
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-secondary text-uppercase">{{ app()->environment() }}</span>
+                <span class="li-badge-env text-uppercase">{{ app()->environment() }}</span>
                 @if(config('log-inspector.access.mode') === 'link' || request()->attributes->get('log_inspector_mode') === 'link')
-                    <span class="badge bg-info text-dark">Temporary Link Session (Read-Only)</span>
-                    <form method="POST" action="{{ route('log-inspector.logout') }}" style="display: inline;">
+                    <span class="badge bg-secondary">Link Session (Read-Only)</span>
+                    <form method="POST" action="{{ route('log-inspector.logout') }}" class="d-inline m-0">
                         @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.75rem;">
+                        <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" style="font-size: 0.775rem;">
                             🚪 Akhiri Sesi
                         </button>
                     </form>
@@ -29,10 +29,12 @@
         </div>
     </nav>
 
-    <main class="container-fluid mb-5">
+    <main class="li-container">
         @yield('content')
     </main>
 
+    <!-- Bootstrap Bundle JS (includes Popper) & Helper -->
+    <script src="{{ asset('vendor/log-inspector/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('vendor/log-inspector/js/log-inspector.js') }}"></script>
 </body>
 </html>

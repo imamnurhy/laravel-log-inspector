@@ -1,58 +1,224 @@
-/* Explorin Log Inspector Minimal Theme (Bootstrap 5 compatible, CSP-safe) */
+/* Explorin Log Inspector Modern Dashboard CSS */
 :root {
-    --li-bg: #f8f9fa;
+    --li-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --li-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --li-bg-body: #f4f6f8;
     --li-card-bg: #ffffff;
-    --li-border: #e9ecef;
+    --li-border-color: #e5e7eb;
+    --li-sidebar-width: 290px;
 }
 
 body.log-inspector-body {
-    background-color: var(--li-bg);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #212529;
+    background-color: var(--li-bg-body);
+    font-family: var(--li-font-sans);
+    color: #1f2937;
+    margin: 0;
+    padding: 0;
+    font-size: 0.9375rem;
 }
 
-.log-table-container {
-    background: var(--li-card-bg);
+/* Navbar */
+.li-navbar {
+    background-color: #111827 !important;
+    border-bottom: 1px solid #374151;
+    padding: 0.75rem 1.5rem;
+}
+.li-brand {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: #f9fafb !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.li-badge-env {
+    background-color: #374151;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-weight: 600;
+}
+
+/* Layout Container */
+.li-container {
+    max-width: 100%;
+    padding: 1.25rem 1.5rem;
+}
+
+/* Sidebar File List */
+.li-file-list {
+    max-height: calc(100vh - 360px);
+    overflow-y: auto;
+}
+.li-file-item {
+    border: none;
+    border-bottom: 1px solid var(--li-border-color);
+    padding: 0.65rem 0.85rem;
+    font-size: 0.85rem;
+    color: #374151;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.15s ease;
+}
+.li-file-item:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+.li-file-item.active {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    font-weight: 600;
+    border-left: 3px solid #2563eb;
+}
+.li-file-size {
+    font-size: 0.725rem;
+    font-family: var(--li-font-mono);
+    padding: 0.2rem 0.45rem;
+    border-radius: 4px;
+}
+
+/* Stat Cards */
+.li-stat-card {
+    background: #fff;
+    border: 1px solid var(--li-border-color);
     border-radius: 8px;
-    border: 1px solid var(--li-border);
+    padding: 0.85rem 1rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.li-stat-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+.li-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Toolbar & Filter Bar */
+.li-card {
+    background: #fff;
+    border: 1px solid var(--li-border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Log Table Styles */
+.li-table-wrap {
+    background: #fff;
+    border: 1px solid var(--li-border-color);
+    border-radius: 8px;
     overflow-x: auto;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
-
-.log-entry-row {
-    cursor: pointer;
-    transition: background-color 0.15s ease;
+.li-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
 }
-
-.log-entry-row:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+.li-table th {
+    background-color: #f9fafb;
+    border-bottom: 1px solid var(--li-border-color);
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #4b5563;
 }
-
-.log-message-preview {
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+.li-table td {
+    padding: 0.75rem 1rem;
+    vertical-align: top;
+    border-bottom: 1px solid var(--li-border-color);
     font-size: 0.875rem;
+}
+.li-table tr:hover td {
+    background-color: #fcfdfe;
+}
+
+/* Log Badges */
+.li-level-badge {
+    font-family: var(--li-font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    text-align: center;
+    min-width: 65px;
+}
+.li-badge-error { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+.li-badge-critical { background-color: #fef2f2; color: #991b1b; border: 1px solid #f87171; font-weight: 800; }
+.li-badge-warning { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+.li-badge-info { background-color: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+.li-badge-debug { background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+
+/* Log Text & Previews */
+.li-log-timestamp {
+    font-family: var(--li-font-mono);
+    font-size: 0.8rem;
+    color: #4b5563;
+    white-space: nowrap;
+}
+.li-log-channel {
+    font-family: var(--li-font-mono);
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+.li-log-msg {
+    font-family: var(--li-font-mono);
+    font-size: 0.825rem;
+    line-height: 1.45;
+    color: #1f2937;
     white-space: pre-wrap;
+    word-break: break-word;
+    text-align: left;
+}
+.li-exception-highlight {
+    background: #fff1f2;
+    border-left: 3px solid #e11d48;
+    padding: 0.35rem 0.6rem;
+    margin-top: 0.4rem;
+    border-radius: 0 4px 4px 0;
+    font-family: var(--li-font-mono);
+    font-size: 0.775rem;
+    color: #be123c;
     word-break: break-all;
 }
 
-.log-stacktrace-box {
-    background-color: #212529;
-    color: #f8f9fa;
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+/* Detail Modal / Code Box */
+.li-code-dark {
+    background-color: #0f172a;
+    color: #f8fafc;
+    font-family: var(--li-font-mono);
     font-size: 0.8rem;
+    line-height: 1.5;
     padding: 1rem;
     border-radius: 6px;
-    max-height: 400px;
+    max-height: 420px;
     overflow-y: auto;
     white-space: pre-wrap;
+    word-break: break-all;
 }
-
-.log-context-box {
-    background-color: #f1f3f5;
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.825rem;
-    padding: 0.75rem;
+.li-code-light {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    font-family: var(--li-font-mono);
+    font-size: 0.8rem;
+    line-height: 1.45;
+    padding: 0.85rem;
     border-radius: 6px;
-    max-height: 250px;
+    max-height: 280px;
     overflow-y: auto;
     white-space: pre-wrap;
+    word-break: break-all;
 }

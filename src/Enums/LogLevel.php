@@ -48,17 +48,16 @@ enum LogLevel: string
     }
 
     /**
-     * Badge CSS class helper for Bootstrap 5.
+     * Badge CSS custom class helper for modern aesthetic styling.
      */
     public function badgeClass(): string
     {
         return match ($this) {
-            self::EMERGENCY, self::ALERT, self::CRITICAL => 'danger text-white fw-bold',
-            self::ERROR => 'danger',
-            self::WARNING => 'warning text-dark',
-            self::NOTICE => 'secondary',
-            self::INFO => 'info text-dark',
-            self::DEBUG => 'light text-muted border',
+            self::EMERGENCY, self::ALERT, self::CRITICAL => 'li-badge-critical',
+            self::ERROR => 'li-badge-error',
+            self::WARNING => 'li-badge-warning',
+            self::NOTICE, self::INFO => 'li-badge-info',
+            self::DEBUG => 'li-badge-debug',
         };
     }
 }
